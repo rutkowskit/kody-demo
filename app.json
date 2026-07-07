@@ -1,15 +1,24 @@
 {
   "expo": {
-    "name": "kody-demo",
+    "name": "Kody demo",
     "slug": "kody-demo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "platforms": ["android", "ios"],
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f3f4f6"
+    },
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "pl.demo.kody",
+      "supportsTablet": false
     },
     "android": {
+      "package": "pl.demo.kody",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -17,9 +26,6 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     }
   }
 }

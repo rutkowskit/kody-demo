@@ -1,7 +1,7 @@
-import { Component, type ReactNode, useMemo } from 'react';
+import { Component, type ReactNode } from 'react';
 import { PixelRatio, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Barcode from '@kichiyaki/react-native-barcode-generator';
-import QRCodeStyled from 'react-native-qrcode-styled';
+import { QrCodeView } from './QrCodeView';
 
 const CODE_BG = '#ffffff';
 const CODE_FG = '#000000';
@@ -56,32 +56,6 @@ export function CodeDisplay({
   const barcodeHeight = 118 * scale;
   const qrSize = Math.max(120, Math.min(screenHeight / 5, screenWidth - 48));
 
-  const qrProps = useMemo(
-    () => ({
-      data: value,
-      padding: 1,
-      pieceBorderRadius: qrSize / 44,
-      pieceSize: qrSize / 20,
-      color: CODE_FG,
-      outerEyesOptions: {
-        borderRadius: qrSize / 12,
-        color: CODE_FG,
-      },
-      innerEyesOptions: {
-        borderRadius: qrSize / 12,
-        scale: 0.8,
-        color: CODE_FG,
-      },
-      isPiecesGlued: true,
-      style: {
-        maxHeight: qrSize,
-        maxWidth: qrSize,
-        backgroundColor: CODE_BG,
-      },
-    }),
-    [value, qrSize],
-  );
-
   return (
     <View style={styles.stack}>
       <View style={styles.section}>
@@ -106,7 +80,7 @@ export function CodeDisplay({
         <Text style={[styles.label, { color: labelColor }]}>Kod QR</Text>
         <View style={styles.codeBox}>
           <CodeErrorBoundary label="Kod QR">
-            <QRCodeStyled {...qrProps} />
+            <QrCodeView value={value} size={qrSize} />
           </CodeErrorBoundary>
         </View>
         <Text style={[styles.caption, { color: captionColor }]}>{value}</Text>

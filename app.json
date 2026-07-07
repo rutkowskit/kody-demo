@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "platforms": ["android", "ios"],
+    "platforms": ["android", "ios", "web"],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -16,6 +16,10 @@
     "ios": {
       "bundleIdentifier": "pl.demo.kody",
       "supportsTablet": false
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "bundler": "metro"
     },
     "android": {
       "package": "pl.demo.kody",

@@ -43,6 +43,13 @@ function preferenceToColorScheme(preference: ThemePreference): ColorSchemeName {
   return 'unspecified';
 }
 
+function syncNativeColorScheme(preference: ThemePreference): void {
+  if (typeof Appearance.setColorScheme !== 'function') {
+    return;
+  }
+  Appearance.setColorScheme(preferenceToColorScheme(preference));
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preference, setPreferenceState] = useState<ThemePreference>('system');
   const [systemScheme, setSystemScheme] = useState<ColorSchemeName | null | undefined>(
@@ -61,7 +68,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             ? stored
             : 'system';
         setPreferenceState(next);
-        Appearance.setColorScheme(preferenceToColorScheme(next));
+        syncNativeColorScheme(next);
       })
       .finally(() => {
         if (mounted) setIsReady(true);
@@ -81,7 +88,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setPreference = useCallback((next: ThemePreference) => {
     setPreferenceState(next);
-    Appearance.setColorScheme(preferenceToColorScheme(next));
+    syncNativeColorScheme(next);
     void AsyncStorage.setItem(THEME_STORAGE_KEY, next);
   }, []);
 

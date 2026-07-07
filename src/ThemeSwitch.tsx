@@ -19,8 +19,8 @@ export function ThemeSwitch() {
                 styles.option,
                 active && { backgroundColor: colors.segmentActiveBg },
               ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
+              role="button"
+              aria-selected={active}
             >
               <Text
                 style={[

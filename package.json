@@ -3,22 +3,29 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@expo/metro-runtime": "~57.0.3",
     "@kichiyaki/react-native-barcode-generator": "^0.6.7",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.2",
     "expo-status-bar": "~57.0.0",
+    "qrcode": "^1.5.4",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.0",
     "react-native-qrcode-styled": "^0.4.0",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-svg": "^15.15.5"
+    "react-native-svg": "^15.15.5",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.6",
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start --android",
+    "start": "expo start",
+    "web": "expo start --web",
+    "web:export": "expo export --platform web",
     "android": "powershell -ExecutionPolicy Bypass -File build-android.ps1 -Install",
     "android:phone": "powershell -ExecutionPolicy Bypass -File build-android.ps1 -Target phone -Install",
     "android:emulator": "powershell -ExecutionPolicy Bypass -File build-android.ps1 -Target emulator -Install",

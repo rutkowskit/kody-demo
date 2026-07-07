@@ -18,6 +18,7 @@
     },
     "android": {
       "package": "pl.demo.kody",
+      "userInterfaceStyle": "light",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

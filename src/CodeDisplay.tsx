@@ -3,6 +3,9 @@ import { PixelRatio, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 import Barcode from '@kichiyaki/react-native-barcode-generator';
 import QRCodeStyled from 'react-native-qrcode-styled';
 
+const CODE_BG = '#ffffff';
+const CODE_FG = '#000000';
+
 function appScale(): number {
   return PixelRatio.getFontScale();
 }
@@ -13,6 +16,8 @@ function barcodeModuleWidth(value: string): number {
 
 type CodeDisplayProps = {
   value: string;
+  labelColor?: string;
+  captionColor?: string;
 };
 
 type ErrorBoundaryProps = {
@@ -43,7 +48,11 @@ class CodeErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
   }
 }
 
-export function CodeDisplay({ value }: CodeDisplayProps) {
+export function CodeDisplay({
+  value,
+  labelColor = '#1a1a1a',
+  captionColor = '#000000',
+}: CodeDisplayProps) {
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const scale = appScale();
 
@@ -57,21 +66,21 @@ export function CodeDisplay({ value }: CodeDisplayProps) {
       padding: 1,
       pieceBorderRadius: qrSize / 44,
       pieceSize: qrSize / 20,
-      color: '#000000',
+      color: CODE_FG,
       outerEyesOptions: {
         borderRadius: qrSize / 12,
-        color: '#000000',
+        color: CODE_FG,
       },
       innerEyesOptions: {
         borderRadius: qrSize / 12,
         scale: 0.8,
-        color: '#000000',
+        color: CODE_FG,
       },
       isPiecesGlued: true,
       style: {
         maxHeight: qrSize,
         maxWidth: qrSize,
-        backgroundColor: '#ffffff',
+        backgroundColor: CODE_BG,
       },
     }),
     [value, qrSize],
@@ -80,31 +89,31 @@ export function CodeDisplay({ value }: CodeDisplayProps) {
   return (
     <View style={styles.stack}>
       <View style={styles.section}>
-        <Text style={styles.label}>Kod paskowy (CODE128)</Text>
-        <View style={styles.barcodeBox}>
+        <Text style={[styles.label, { color: labelColor }]}>Kod paskowy (CODE128)</Text>
+        <View style={styles.codeBox}>
           <CodeErrorBoundary label="Kod paskowy">
             <Barcode
               value={value}
               format="CODE128"
               height={barcodeHeight}
               width={barcodeWidth}
-              lineColor="#000000"
-              background="#ffffff"
+              lineColor={CODE_FG}
+              background={CODE_BG}
               maxWidth={screenWidth - 80}
             />
           </CodeErrorBoundary>
         </View>
-        <Text style={styles.caption}>{value}</Text>
+        <Text style={[styles.caption, { color: captionColor }]}>{value}</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Kod QR</Text>
-        <View style={styles.qrBox}>
+        <Text style={[styles.label, { color: labelColor }]}>Kod QR</Text>
+        <View style={styles.codeBox}>
           <CodeErrorBoundary label="Kod QR">
             <QRCodeStyled {...qrProps} />
           </CodeErrorBoundary>
         </View>
-        <Text style={styles.caption}>{value}</Text>
+        <Text style={[styles.caption, { color: captionColor }]}>{value}</Text>
       </View>
     </View>
   );
@@ -124,26 +133,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
   },
-  barcodeBox: {
-    backgroundColor: '#ffffff',
-    padding: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-    maxWidth: '100%',
-    overflow: 'hidden',
-  },
-  qrBox: {
-    backgroundColor: '#ffffff',
+  codeBox: {
+    backgroundColor: CODE_BG,
     padding: 8,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   caption: {
     fontSize: 16,
-    color: '#000000',
     letterSpacing: 2,
   },
   error: {

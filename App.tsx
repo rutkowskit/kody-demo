@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,6 +12,8 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { CodeDisplay } from './src/CodeDisplay';
+import { ThemeProvider, useTheme } from './src/ThemeContext';
+import { ThemeSwitch } from './src/ThemeSwitch';
 
 const DEFAULT_CODE = '123456';
 
@@ -18,16 +21,90 @@ function sanitizeSixDigits(input: string): string {
   return input.replace(/\D/g, '').slice(0, 6);
 }
 
-export default function App() {
+function AppContent() {
+  const { colors, resolved, isReady } = useTheme();
   const [rawInput, setRawInput] = useState(DEFAULT_CODE);
 
   const code = useMemo(() => sanitizeSixDigits(rawInput), [rawInput]);
   const isValid = code.length === 6;
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        root: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        flex: {
+          flex: 1,
+        },
+        scroll: {
+          flexGrow: 1,
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 24,
+          alignItems: 'center',
+          gap: 20,
+        },
+        title: {
+          fontSize: 26,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        subtitle: {
+          fontSize: 14,
+          color: colors.textMuted,
+          textAlign: 'center',
+          marginBottom: 4,
+        },
+        inputBlock: {
+          width: '100%',
+          gap: 8,
+        },
+        inputLabel: {
+          fontSize: 14,
+          color: colors.textSecondary,
+        },
+        input: {
+          width: '100%',
+          backgroundColor: colors.surface,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: colors.border,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          fontSize: 22,
+          letterSpacing: 3,
+          color: colors.inputText,
+          textAlign: 'center',
+        },
+        hint: {
+          fontSize: 15,
+          color: colors.textMuted,
+          textAlign: 'center',
+          paddingHorizontal: 12,
+        },
+        loading: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.background,
+        },
+      }),
+    [colors],
+  );
+
+  if (!isReady) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={colors.text} />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaProvider>
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
-      <StatusBar style="dark" />
+      <StatusBar style={resolved === 'dark' ? 'light' : 'dark'} />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -40,6 +117,8 @@ export default function App() {
           <Text style={styles.title}>Kody demo</Text>
           <Text style={styles.subtitle}>Aplikacja mobilna — podgląd kodów karty</Text>
 
+          <ThemeSwitch />
+
           <View style={styles.inputBlock}>
             <Text style={styles.inputLabel}>Numer 6-cyfrowy</Text>
             <TextInput
@@ -49,75 +128,32 @@ export default function App() {
               keyboardType="number-pad"
               maxLength={6}
               placeholder="123456"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.placeholder}
               returnKeyType="done"
             />
           </View>
 
           {isValid ? (
-            <CodeDisplay value={code} />
+            <CodeDisplay
+              value={code}
+              labelColor={colors.codeLabel}
+              captionColor={colors.text}
+            />
           ) : (
             <Text style={styles.hint}>Wpisz dokładnie 6 cyfr, aby wygenerować kody.</Text>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-    </SafeAreaProvider>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-  },
-  flex: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
-    alignItems: 'center',
-    gap: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  inputBlock: {
-    width: '100%',
-    gap: 8,
-  },
-  inputLabel: {
-    fontSize: 14,
-    color: '#4b5563',
-  },
-  input: {
-    width: '100%',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 22,
-    letterSpacing: 3,
-    color: '#111827',
-    textAlign: 'center',
-  },
-  hint: {
-    fontSize: 15,
-    color: '#6b7280',
-    textAlign: 'center',
-    paddingHorizontal: 12,
-  },
-});
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </SafeAreaProvider>
+  );
+}

@@ -1,5 +1,6 @@
 {
   "expo": {
+    "plugins": ["./plugins/withForceLightCodes.js"],
     "name": "Kody demo",
     "slug": "kody-demo",
     "version": "1.0.0",

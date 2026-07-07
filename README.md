@@ -18,6 +18,12 @@ cd E:\kody-demo
 npm install
 ```
 
+Katalog `android/` nie jest w repozytorium (generowany przez Expo). Przy pierwszym buildzie `build-android.ps1` uruchomi `npm run prebuild:android` automatycznie. Możesz też wygenerować go wcześniej:
+
+```powershell
+npm run prebuild:android
+```
+
 ---
 
 ## Uruchomienie aplikacji
@@ -127,6 +133,128 @@ Wymaga działającego Metro i połączenia telefonu z komputerem (USB lub ta sam
 
 ---
 
+## Android Studio
+
+Android Studio buduje i instaluje warstwę natywną z katalogu `android/`. Kod JavaScript w trybie **debug** nadal wymaga działającego **Metro** — bez niego aplikacja pokaże biały ekran.
+
+### Przygotowanie (jednorazowo)
+
+```powershell
+cd E:\kody-demo
+npm install
+npm run prebuild:android
+.\android-studio\install.ps1
+```
+
+Skrypt `install.ps1` kopiuje gotowe konfiguracje Run do `android\.idea\runConfigurations\` (katalog `android/` jest generowany i nie trafia do git).
+
+### Otwarcie projektu
+
+W Android Studio wybierz **Open** i wskaż folder:
+
+```
+E:\kody-demo\android
+```
+
+Nie otwieraj katalogu głównego repozytorium — Gradle i moduł `app` są w `android/`.
+
+### Ustawienia IDE
+
+**Settings → Languages & Frameworks → Android SDK**
+
+Zainstaluj:
+
+| Komponent | Wersja w projekcie |
+|-----------|-------------------|
+| Android SDK Platform | **36** |
+| Android SDK Build-Tools | najnowsze dostępne |
+| NDK | **27.1.12297006** |
+| Android SDK Platform-Tools | (adb) |
+
+Ścieżka SDK — domyślnie `E:\Projects\Android\Sdk`. Jeśli masz inną, ustaw ją w Android Studio **oraz** w `android/local.properties`:
+
+```properties
+sdk.dir=E\:\\Projects\\Android\\Sdk
+```
+
+**Settings → Build, Execution, Deployment → Build Tools → Gradle**
+
+- **Gradle JDK:** 17 lub 21
+- Gradle wrapper projektu: **9.3.1** (pobierany automatycznie)
+
+**Node.js w PATH** — Gradle wywołuje `node` przy synchronizacji i buildzie. W terminalu Android Studio sprawdź:
+
+```powershell
+node --version
+```
+
+Jeśli polecenie nie działa, dodaj Node do PATH systemowego i zrestartuj Android Studio.
+
+### Emulator (zalecany do codziennej pracy)
+
+**Device Manager → Create Device**
+
+- Urządzenie: np. Pixel 6
+- System image: **x86_64**, API 34–36 (nie ARM)
+- Uruchom emulator przed kliknięciem Run
+
+### Konfiguracje Run (po `install.ps1`)
+
+W Android Studio (dropdown obok zielonej strzałki) pojawią się:
+
+| Konfiguracja | Do czego służy |
+|--------------|----------------|
+| **Metro (Expo)** | Uruchamia `npm run android:dev` z katalogu nadrzędnego — **odpal najpierw** |
+| **Kody demo (debug)** | Build debug + instalacja na emulatorze/telefonie |
+| **Kody demo (release APK)** | `app:assembleRelease` — bundle JS wbudowany, bez Metro |
+
+Jeśli konfiguracji nie widać: **Run → Edit Configurations** — powinny być na liście. Przy pierwszym uruchomieniu debug wybierz moduł **`app`**, jeśli IDE poprosi o wskazanie modułu.
+
+Aby przeinstalować konfiguracje po ponownym `prebuild`:
+
+```powershell
+.\android-studio\install.ps1 -Force
+```
+
+### Typowy workflow (debug)
+
+1. Uruchom emulator (Device Manager) lub podłącz telefon (`adb devices`).
+2. W Android Studio wybierz **Metro (Expo)** → Run (otworzy się terminal z bundlerem).
+3. Poczekaj, aż Metro wystartuje.
+4. Wybierz **Kody demo (debug)** → Run na tym samym urządzeniu.
+5. Build Variant: **debug** (Build → Select Build Variant → `debug`).
+
+Alternatywa bez Android Studio — jedno polecenie z katalogu głównego:
+
+```powershell
+npx expo run:android
+```
+
+### Release z Android Studio (bez Metro)
+
+1. Build Variant: **release**
+2. Wybierz **Kody demo (release APK)** → Run  
+   albo **Build → Build Bundle(s) / APK(s) → Build APK(s)**
+3. APK: `android\app\build\outputs\apk\release\app-release.apk`
+
+Do dystrybucji wygodniej użyć skryptu (kopiuje też do `dist\`):
+
+```powershell
+.\build-android.ps1 -Target emulator -Install
+```
+
+### Typowe problemy w Android Studio
+
+| Objaw | Rozwiązanie |
+|-------|-------------|
+| Gradle sync: `node` not found | Node w PATH, restart IDE |
+| Biały ekran po Run | Najpierw uruchom **Metro (Expo)** |
+| `INSTALL_FAILED_NO_MATCHING_ABIS` | Emulator x86_64 albo APK `phone` na telefon ARM |
+| Brak urządzenia na liście | SDK Platform-Tools, debugowanie USB, `adb devices` |
+| Sync/build bardzo wolny lub błędy ścieżek | Krótka ścieżka projektu (`E:\kody-demo`) |
+
+---
+
 ## Poprawne wyświetlanie kodów przy wymuszonym trybie ciemnym (MIUI / Xiaomi i inne)
 
 Na wielu telefonach z **systemowym trybem ciemnym** (szczególnie **MIUI na Xiaomi**) kody kreskowe i QR renderowane przez **SVG** (`react-native-svg`) mogą wyglądać źle: odwrócone kolory (białe paski na ciemnym tle), szare „wyprane” kody itp. Dzieje się tak mimo jawnego ustawienia `#000000` / `#ffffff` w JavaScript.
@@ -134,6 +262,8 @@ Na wielu telefonach z **systemowym trybem ciemnym** (szczególnie **MIUI na Xiao
 Przyczyną jest mechanizm Androida **Force Dark** (od API 29, Android 10): system próbuje automatycznie „przyciemnić” widoki, które uznaje za jasne — w tym ścieżki SVG generowane przez biblioteki kodów.
 
 Aplikacja **Kody demo** rozwiązuje ten problem warstwowo. Poniżej opis elementów, które łącznie zapewniają **zawsze czarny foreground na białym tle** w obszarze kodów, niezależnie od motywu systemowego i niezależnie od przełącznika motywu aplikacji (Jasny / Ciemny / System).
+
+Poprawki natywne są w **`plugins/withForceLightCodes.js`** i stosowane automatycznie przy `expo prebuild` (nie giną po `prebuild --clean`).
 
 ### 1. Wyłączenie Force Dark na poziomie okna (`MainActivity.kt`)
 
@@ -216,6 +346,8 @@ src/ThemeContext.tsx    — motyw aplikacji (System / Jasny / Ciemny)
 src/ThemeSwitch.tsx     — przełącznik motywu
 src/theme.ts            — palety kolorów
 build-android.ps1       — build release + kopia do dist\
+plugins/                — Expo config plugin (Force Dark / jasny motyw kodów)
+android-studio/         — konfiguracje Run dla Android Studio + install.ps1
 android/                — projekt natywny Android (Expo prebuild)
 dist/                   — gotowe APK do instalacji
 ```

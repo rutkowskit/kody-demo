@@ -61,10 +61,10 @@ function Resolve-AdbDevice {
 
     if ($devices.Count -eq 1) { return $devices[0].Serial }
 
-    Write-Error "Podlaczone jest $($devices.Count) urzadzen. Podaj -Device <serial>:"
+    Write-Error "Podlaczone jest $($devices.Count) urzadzen. Podaj -Device [serial]:"
     $devices | ForEach-Object { Write-Host "  -Device $($_.Serial)  ($($_.Model))" }
     Write-Host ""
-    Write-Host "Skroty: -Device emulator-5554  (emulator)  |  -Device <id-telefonu>  (USB)"
+    Write-Host 'Skroty: -Device emulator-5554  (emulator)  |  -Device [id-telefonu]  (USB)'
     exit 1
 }
 
@@ -75,7 +75,7 @@ function Resolve-BuildTarget {
 
     $abi = Get-AdbPrimaryAbi -AdbArgs $AdbArgs
     if (-not $abi) {
-        Write-Host "Brak podlaczonego urzadzenia — buduje uniwersalny APK (all)."
+        Write-Host 'Brak podlaczonego urzadzenia - buduje uniwersalny APK (all).'
         return 'all'
     }
 
@@ -83,6 +83,29 @@ function Resolve-BuildTarget {
     if ($abi -match 'x86') { return 'emulator' }
     if ($abi -match 'arm') { return 'phone' }
     return 'all'
+}
+
+function Ensure-AndroidProject {
+    $androidDir = Join-Path $PSScriptRoot "android"
+    $gradlew = Join-Path $androidDir "gradlew.bat"
+    if (Test-Path $gradlew) { return }
+
+    Write-Host 'Brak projektu Android (android\gradlew.bat) - uruchamiam expo prebuild...'
+    Push-Location $PSScriptRoot
+    try {
+        & npm run prebuild:android
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "expo prebuild nie powiodl sie (kod $LASTEXITCODE). Uruchom recznie: npm run prebuild:android"
+            exit $LASTEXITCODE
+        }
+    } finally {
+        Pop-Location
+    }
+
+    if (-not (Test-Path $gradlew)) {
+        Write-Error 'Po prebuild nadal brak android\gradlew.bat. Sprawdz logi powyzej.'
+        exit 1
+    }
 }
 
 $deviceSerial = $null
@@ -103,6 +126,8 @@ $arch = switch ($resolvedTarget) {
     'phone'    { 'arm64-v8a,armeabi-v7a' }
     'all'      { 'armeabi-v7a,arm64-v8a,x86,x86_64' }
 }
+
+Ensure-AndroidProject
 
 $localProps = Join-Path $PSScriptRoot "android\local.properties"
 Set-Content -Path $localProps -Value "sdk.dir=E\:\\Projects\\Android\\Sdk" -Encoding ASCII
@@ -131,18 +156,18 @@ try {
         Invoke-Adb -AdbArgs $adbArgs -Command @('install', '-r', $distApk)
         if ($LASTEXITCODE -eq 0) {
             Invoke-Adb -AdbArgs $adbArgs -Command @('shell', 'am', 'start', '-n', 'pl.demo.kody/.MainActivity') | Out-Null
-            Write-Host "Uruchomiono: Kody demo"
+            Write-Host 'Uruchomiono: Kody demo'
         }
         exit $LASTEXITCODE
     }
 
     Write-Host ""
-    Write-Host "Instalacja (jedno urzadzenie):"
+    Write-Host 'Instalacja (jedno urzadzenie):'
     Write-Host "  adb install -r `"$distApk`""
     Write-Host ""
-    Write-Host "Instalacja (wiele urzadzen — podaj serial z 'adb devices'):"
-    Write-Host "  adb -s <serial> install -r `"$distApk`""
-    Write-Host "  .\build-android.ps1 -Target $resolvedTarget -Device <serial> -Install"
+    Write-Host "Instalacja (wiele urzadzen - podaj serial z 'adb devices'):"
+    Write-Host "  adb -s [serial] install -r `"$distApk`""
+    Write-Host "  .\build-android.ps1 -Target $resolvedTarget -Device [serial] -Install"
     exit 0
 } finally {
     Pop-Location

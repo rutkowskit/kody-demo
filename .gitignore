@@ -40,3 +40,6 @@ yarn-error.*
 /ios/
 /android/
 /.idea/
+
+# ai
+/terminals/

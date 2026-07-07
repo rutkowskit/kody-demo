@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from './ThemeContext';
-import { THEME_OPTIONS, type ThemePreference } from './theme';
+import { THEME_OPTIONS } from './theme';
 
 export function ThemeSwitch() {
   const { preference, colors, setPreference } = useTheme();
@@ -14,7 +14,7 @@ export function ThemeSwitch() {
           return (
             <Pressable
               key={option.value}
-              onPress={() => setPreference(option.value as ThemePreference)}
+              onPress={() => setPreference(option.value)}
               style={[
                 styles.option,
                 active && { backgroundColor: colors.segmentActiveBg },

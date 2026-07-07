@@ -5,13 +5,10 @@ import QRCodeStyled from 'react-native-qrcode-styled';
 
 const CODE_BG = '#ffffff';
 const CODE_FG = '#000000';
+const BARCODE_MODULE_WIDTH = 3;
 
-function appScale(): number {
+function fontScale(): number {
   return PixelRatio.getFontScale();
-}
-
-function barcodeModuleWidth(value: string): number {
-  return value.length > 10 ? 2 : 3;
 }
 
 type CodeDisplayProps = {
@@ -54,11 +51,10 @@ export function CodeDisplay({
   captionColor = '#000000',
 }: CodeDisplayProps) {
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
-  const scale = appScale();
+  const scale = fontScale();
 
   const barcodeHeight = 118 * scale;
   const qrSize = Math.max(120, Math.min(screenHeight / 5, screenWidth - 48));
-  const barcodeWidth = useMemo(() => barcodeModuleWidth(value), [value]);
 
   const qrProps = useMemo(
     () => ({
@@ -96,7 +92,7 @@ export function CodeDisplay({
               value={value}
               format="CODE128"
               height={barcodeHeight}
-              width={barcodeWidth}
+              width={BARCODE_MODULE_WIDTH}
               lineColor={CODE_FG}
               background={CODE_BG}
               maxWidth={screenWidth - 80}
